@@ -756,7 +756,7 @@ const App: React.FC = () => {
                                         className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold rounded-lg shadow-md hover:opacity-90 transition-all"
                                     >
                                         <Share2 size={18} />
-                                        Save
+                                        Add
                                     </button>
                                 )}
                             </div>

@@ -276,7 +276,7 @@ const CombineModal: React.FC<CombineModalProps> = ({ isOpen, onClose, scenes, wo
                         className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:opacity-90 disabled:bg-gray-500 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/20"
                     >
                         <Share2 size={18} />
-                        Save to Library
+                        Add to Library
                     </button>
 
                     <button 

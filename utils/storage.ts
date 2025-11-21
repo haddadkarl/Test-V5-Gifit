@@ -8,13 +8,29 @@ import type { LibraryItem } from '../types';
 // ------------------------------------------------------------------
 // FIREBASE CONFIGURATION
 // ------------------------------------------------------------------
+
+// Helper to safely get environment variables (supports Vite import.meta.env and standard process.env)
+const getEnv = (key: string) => {
+    // Check for Vite environment variables
+    // @ts-ignore
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
+        // @ts-ignore
+        return import.meta.env[`VITE_${key}`] || import.meta.env[key];
+    }
+    // Check for standard Node/Webpack environment variables
+    if (typeof process !== 'undefined' && process.env) {
+        return process.env[`REACT_APP_${key}`] || process.env[key];
+    }
+    return undefined;
+};
+
 const firebaseConfig = {
-    apiKey: "REPLACE_WITH_YOUR_API_KEY",
-    authDomain: "REPLACE_WITH_YOUR_PROJECT.firebaseapp.com",
-    projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-    storageBucket: "REPLACE_WITH_YOUR_PROJECT.appspot.com",
-    messagingSenderId: "REPLACE_WITH_YOUR_SENDER_ID",
-    appId: "REPLACE_WITH_YOUR_APP_ID"
+    apiKey: getEnv("FIREBASE_API_KEY") || "REPLACE_WITH_YOUR_API_KEY",
+    authDomain: getEnv("FIREBASE_AUTH_DOMAIN") || "REPLACE_WITH_YOUR_PROJECT.firebaseapp.com",
+    projectId: getEnv("FIREBASE_PROJECT_ID") || "REPLACE_WITH_YOUR_PROJECT_ID",
+    storageBucket: getEnv("FIREBASE_STORAGE_BUCKET") || "REPLACE_WITH_YOUR_PROJECT.appspot.com",
+    messagingSenderId: getEnv("FIREBASE_MESSAGING_SENDER_ID") || "REPLACE_WITH_YOUR_SENDER_ID",
+    appId: getEnv("FIREBASE_APP_ID") || "REPLACE_WITH_YOUR_APP_ID"
 };
 
 let db: any;
@@ -22,76 +38,95 @@ let storage: any;
 let auth: any;
 let isFirebaseInitialized = false;
 
+// Check if config is valid (i.e. not the placeholders)
+const isConfigPlaceholder = (value: string) => !value || value.includes("REPLACE_WITH");
+const hasValidConfig = !isConfigPlaceholder(firebaseConfig.apiKey) && !isConfigPlaceholder(firebaseConfig.projectId);
+
+// Initialize Firebase
+try {
+    if (hasValidConfig) {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        storage = getStorage(app);
+        auth = getAuth(app);
+        isFirebaseInitialized = true;
+    } else {
+        console.warn("Firebase config is missing or using placeholders. Using Mock Mode for demonstration.");
+    }
+} catch (error) {
+    console.error("Error initializing Firebase:", error);
+}
+
 // --- Mock Data & State for Demo Mode ---
 const MOCK_LIBRARY_ITEMS: LibraryItem[] = [
     {
         id: '1',
-        name: 'Summer Collection Showcase',
-        url: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=600&q=80',
+        name: 'Avant-Garde Edit',
+        url: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=600&q=80',
         category: 'Fashion',
         categories: ['Fashion'],
         createdAt: Date.now() - 10000000
     },
     {
         id: '2',
-        name: 'Goal Highlight',
-        url: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=600&q=80',
+        name: 'Kinetic Motion',
+        url: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=600&q=80',
         category: 'Sport',
         categories: ['Sport'],
         createdAt: Date.now() - 20000000
     },
     {
         id: '3',
-        name: 'Skincare Routine',
-        url: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80',
+        name: 'Texture Study',
+        url: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?auto=format&fit=crop&w=600&q=80',
         category: 'Beauty',
         categories: ['Beauty'],
         createdAt: Date.now() - 30000000
     },
     {
         id: '4',
-        name: 'Tech Review',
-        url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80',
+        name: 'Cyber City',
+        url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80',
         category: 'Tech',
         categories: ['Tech'],
         createdAt: Date.now() - 40000000
     },
     {
         id: '5',
-        name: 'Delicious Burger',
-        url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80',
+        name: 'Culinary Arts',
+        url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80',
         category: 'Food',
         categories: ['Food'],
         createdAt: Date.now() - 50000000
     },
     {
         id: '6',
-        name: 'Luxury Car Show',
-        url: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=600&q=80',
+        name: 'Neon Drive',
+        url: 'https://images.unsplash.com/photo-1503376763036-066120622c74?auto=format&fit=crop&w=600&q=80',
         category: 'Auto',
         categories: ['Auto'],
         createdAt: Date.now() - 60000000
     },
     {
         id: '7',
-        name: 'Concert Vibes',
-        url: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?auto=format&fit=crop&w=600&q=80',
+        name: 'Night Life',
+        url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=600&q=80',
         category: 'M&E',
         categories: ['M&E'],
         createdAt: Date.now() - 70000000
     },
     {
         id: '8',
-        name: 'Financial Charts',
-        url: 'https://images.unsplash.com/photo-1611974765270-ca1258634369?auto=format&fit=crop&w=600&q=80',
+        name: 'Urban Geometry',
+        url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80',
         category: 'FinServ',
         categories: ['FinServ'],
         createdAt: Date.now() - 80000000
     },
     {
         id: '9',
-        name: 'Refreshing Drink',
-        url: 'https://images.unsplash.com/photo-1543573852-1a71a6ce19bc?auto=format&fit=crop&w=600&q=80',
+        name: 'Mixology',
+        url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=600&q=80',
         category: 'Beverage',
         categories: ['Beverage'],
         createdAt: Date.now() - 90000000
@@ -101,21 +136,6 @@ const MOCK_LIBRARY_ITEMS: LibraryItem[] = [
 let localMockItems = [...MOCK_LIBRARY_ITEMS];
 let mockUser: any = null;
 const mockAuthListeners: ((user: any) => void)[] = [];
-
-// Initialize Firebase
-try {
-    if (firebaseConfig.apiKey !== "REPLACE_WITH_YOUR_API_KEY") {
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        storage = getStorage(app);
-        auth = getAuth(app);
-        isFirebaseInitialized = true;
-    } else {
-        console.warn("Firebase config is missing. Using Mock Mode for demonstration.");
-    }
-} catch (error) {
-    console.error("Error initializing Firebase:", error);
-}
 
 const COLLECTION_NAME = 'community_library';
 
