@@ -1,0 +1,5 @@
+{
+  "name": "Gifit V5",
+  "description": "An application that takes an uploaded video, splits it into scenes, and converts each scene into a GIF. Users can combine GIFs, and download individual or all GIFs in a zip file.",
+  "requestFramePermissions": []
+}
