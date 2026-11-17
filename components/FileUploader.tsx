@@ -139,7 +139,7 @@ const FileUploader: React.FC<UploaderProps> = ({ onUrlSubmit, onFileSelect, isFe
                     type="url"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
-                    placeholder="e.g., https://www.tiktok.com/@user/video/123..."
+                    placeholder="e.g., https://www.tiktok.com/@user/video/123... or https://youtu.be/..."
                     className="w-full bg-gray-800 border-2 border-gray-600 rounded-lg py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     required
                     disabled={isFetching}
