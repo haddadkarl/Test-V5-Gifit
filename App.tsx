@@ -59,6 +59,34 @@ const promiseAny: <T>(promises: Iterable<Promise<T>>) => Promise<T> =
         });
     };
 
+// URL of your Cloudflare Worker that downloads YouTube videos (see youtube-worker.js).
+// Your Worker's address on Cloudflare.
+const YOUTUBE_WORKER_URL = 'https://gifffit-youtube.haddadkarl.workers.dev';
+
+// Helper function to download a YouTube video through the Cloudflare Worker.
+const _fetchYouTubeVideo = async (videoId: string, setFetchStatus: (status: string) => void): Promise<File> => {
+    setFetchStatus('Downloading YouTube video...');
+    const response = await fetch(`${YOUTUBE_WORKER_URL}/?id=${encodeURIComponent(videoId)}`);
+    if (!response.ok) {
+        let detail = `status ${response.status}`;
+        try {
+            const errorInfo = await response.json();
+            if (errorInfo && errorInfo.error) detail = errorInfo.error;
+        } catch (e) { /* response was not JSON */ }
+        throw new Error(`YouTube download failed: ${detail}`);
+    }
+    const videoBlob = await response.blob();
+    return new File([videoBlob], `video.mp4`, { type: 'video/mp4' });
+};
+
+// Helper function to extract a YouTube video ID from watch, shorts, embed, live, and youtu.be links.
+const _getYouTubeId = (url: string): string | null => {
+    const match = url.match(
+        /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
+    );
+    return match ? match[1] : null;
+};
+
 // Helper function to resolve video URLs from various social media platforms.
 const _resolveVideoUrl = async (url: string): Promise<string> => {
     const fetchPromises: Promise<string>[] = [];
@@ -96,7 +124,7 @@ const _resolveVideoUrl = async (url: string): Promise<string> => {
             fetchPromises.push(promise);
         }
     }
-    
+
     const genericResolvers = [
         { name: 'Cobalt (wuk.sh)', url: 'https://co.wuk.sh/api/json' },
         { name: 'Cobalt (api)', url: 'https://api.cobalt.tools/api/json' },
@@ -393,8 +421,18 @@ const App: React.FC = () => {
         if (tiktokMatch && tiktokMatch[1]) {
             setBaseName(tiktokMatch[1]);
         }
-        
+        const youTubeIdForName = _getYouTubeId(url);
+        if (youTubeIdForName) {
+            setBaseName(`youtube-${youTubeIdForName}`);
+        }
+
         try {
+            if (youTubeIdForName) {
+                const youTubeFile = await _fetchYouTubeVideo(youTubeIdForName, setFetchStatus);
+                setVideoFile(youTubeFile);
+                return;
+            }
+
             const isDirectLink = /\.(mp4|webm|mov|ogg)$/i.test(url);
             let finalVideoUrl: string;
 
@@ -851,7 +889,7 @@ const App: React.FC = () => {
                                                     type="url"
                                                     value={url}
                                                     onChange={(e) => setUrl(e.target.value)}
-                                                    placeholder="Paste TikTok url here..."
+                                                    placeholder="Paste TikTok or YouTube url here..."
                                                     className="w-full bg-transparent border-none py-3 px-5 text-white text-base placeholder:text-[#8E8E93] focus:outline-none focus:ring-0"
                                                     required
                                                     disabled={isFetching}
