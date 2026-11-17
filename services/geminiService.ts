@@ -1,8 +1,13 @@
-
 import { GoogleGenAI } from "@google/genai";
 
 // Initialize Gemini AI
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Created only when needed, so the app still loads when no API key is set.
+let ai: GoogleGenAI | null = null;
+const getAi = (): GoogleGenAI => {
+    if (!process.env.API_KEY) throw new Error('Gemini API key is not set.');
+    if (!ai) ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return ai;
+};
 
 /**
  * Analyzes a GIF blob using Gemini 2.5 Flash to determine its best fit category.
@@ -16,7 +21,7 @@ export const categorizeGif = async (blob: Blob, categories: string[]): Promise<s
         // Strip the data URL prefix to get just the base64 data
         const data = base64.split(',')[1];
 
-        const result = await ai.models.generateContent({
+        const result = await getAi().models.generateContent({
             model: 'gemini-2.5-flash',
             contents: {
                 parts: [
